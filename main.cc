@@ -3,10 +3,14 @@
 #include <dirent.h>
 #include <iostream>
 #include <sys/stat.h>
+#ifdef PLATFORM_UBUNTU
 #include "boost/filesystem.hpp"
+#endif
 
 using namespace std;
+#ifdef PLATFORM_UBUNTU
 using namespace boost::filesystem;
+#endif
 
 bool isDirectory(const string &path)
 {
@@ -16,6 +20,7 @@ bool isDirectory(const string &path)
             (buffer.st_mode & S_IFDIR));
 }
 
+#ifdef PLATFORM_UBUNTU
 void listFilesRecusive(const string &path, std::function<void(const string&)> cb)
 {
     DIR *dir = NULL;
@@ -39,13 +44,15 @@ void listFilesRecusive(const string &path, std::function<void(const string&)> cb
     }
     closedir(dir);
 }
+#endif
 
+#if 0
 void listDirectorySelfDefined(const string &path) 
 {
     DIR *baseDir = NULL, *subDir = NULL;
     string subDirPath = "";
     int subDirCnt = 0;
-    
+
     if ((baseDir = opendir(path.c_str())) != NULL) 
     {
         while (struct dirent *f = readdir(baseDir))
@@ -77,8 +84,50 @@ void listDirectorySelfDefined(const string &path)
     }
     closedir(baseDir);
 }
+#else
+void listDirectorySelfDefined(const string &path) 
+{
+    DIR *baseDir = NULL, *subDir = NULL;
+    string subDirPath = "";
+    int subDirCnt = 0;
 
-void listDirectoryBoost(const string &path)
+    if ((baseDir = opendir(path.c_str())) != NULL) 
+    {
+        while (struct dirent *f = readdir(baseDir))
+        {
+            string tmp1 = path + "/" + string(f->d_name);
+            //cout << "f: " << tmp1 << endl;
+            if (f->d_name[0] != '.' && isDirectory(tmp1)) 
+            {
+                subDirPath = tmp1;
+                if ((subDir = opendir(subDirPath.c_str())) != NULL)
+                {
+                    subDirCnt = 0;
+                    while (struct dirent *g = readdir(subDir))
+                    {
+                        string tmp2 = tmp1 + "/" + string(g->d_name);
+                        //cout << "g: " << tmp2 << endl;
+                        if (g->d_name[0] != '.' && isDirectory(tmp2))
+                        {
+                            cout << string(f->d_name) + "/" + string(g->d_name) << endl;
+                            subDirCnt++;
+                        }
+                    }
+                    if (subDirCnt == 0) 
+                    {
+                        cout << string(f->d_name) << endl;
+                    }
+                }
+                closedir(subDir);
+            }
+        }
+    }
+    closedir(baseDir);
+}
+#endif
+
+#ifdef PLATFORM_UBUNTU
+void listDirectoryOriginal(const string &path)
 {
     string dir_path_name;
     int subdir_count = 0;
@@ -94,7 +143,7 @@ void listDirectoryBoost(const string &path)
             {
                 if (isDirectory(jj->path().string()))
                 {
-                    
+
                     cout << (*ii).path().filename().string() + "/" + 
                         (*jj).path().filename().string() << endl;
                     ++subdir_count;
@@ -107,22 +156,29 @@ void listDirectoryBoost(const string &path)
         }
     }
 }
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef PLATFORM_UBUNTU
     const string path = "/home/yunpengx/Projects/ottoware";
+#else
+    const string path = "/";
+#endif
+
 #if 0
     listFilesRecusive(path, [](const string &path) {
-        cout << path << endl;
-    });
-#else
+            cout << path << endl;
+            });
+#endif
+
+#ifdef PLATFORM_UBUNTU
+    cout << "Original: " << endl;
+    listDirectoryOriginal(path);
+    cout << endl;
+#endif
+
     cout << "self-defined: " << endl;
     listDirectorySelfDefined(path);
-
-    cout << endl;
-
-    cout << "boost: " << endl;
-    listDirectoryBoost(path);
-#endif
     return 0;
 }
