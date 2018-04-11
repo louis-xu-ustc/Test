@@ -38,7 +38,10 @@ message(The\ c++\ compiler\ is\ set\ to\ be\ \"${CMAKE_CXX_COMPILER}\")
 
 
 set(TARGET_TEST "ottoTest")
-set(SRCS_TEST main.cc)
+#set(SRCS_TEST main.cc)
+set(SRCS_TEST parsecmd.cc testParseCmd.cc)
+
+include_directories(../ottoware/src/include)
 
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  

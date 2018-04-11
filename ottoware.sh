@@ -54,7 +54,7 @@ ottoware_cscope ()
     find $OTTO                                                                \
         -path "$OTTO/src" -prune -o                                          \
         -name "*.[chxsS]" -print > $OTTO/cscope.files
-    cscope -bkqc -I $OTTO/cscope.files
+    cscope -bcqR -I $OTTO/cscope.files
     if [ $? -ne 0 ]
     then              
         echo "failed to create cscope.files"   
